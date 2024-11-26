@@ -1,30 +1,68 @@
+import 'package:enhanced_future_builder/enhanced_future_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:riceblog/comment/view.dart';
 import 'package:riceblog/generated/assets.dart';
+import 'package:riceblog/gloableFunc.dart';
+import 'package:riceblog/markdown/customMusicWidget.dart';
+import 'package:riceblog/markdown/custommarkdownwarnwidget.dart';
+import 'package:riceblog/markdown/linksMarkdownWidget.dart';
+import 'package:riceblog/markdownStyle.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:transparent_image/transparent_image.dart';
 
+import '../allfunc.dart';
 import '../command.dart';
+import '../gloableFunc.dart';
+import '../markdown/custommarkdownnoticewidget.dart';
 import 'logic.dart';
+import 'package:flutter_highlight/themes/a11y-light.dart';
 
-class PostPage extends StatelessWidget {
+class PostPage extends StatefulWidget {
   PostPage({Key? key}) : super(key: key);
 
-  final logic = Get.put(PostLogic());
+  @override
+  State<StatefulWidget> createState() {
+    return _PostPageState();
+  }
+}
+
+class _PostPageState extends State<PostPage> {
+  String cid = Get.parameters['id'].toString();
+  final AllFunc = allFunc();
+   final logic = Get.put(PostLogic());
+  final Gloablelogic = Get.find<gloableLogic>();
+  late Future postFuture = logic.getSinglePost(cid);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final singleController = AutoScrollController(
+      viewportBoundaryGetter: () => Rect.fromLTRB(0, 0, 0, 0),
+      suggestedRowHeight: 0,
+    );
     return Stack(
       children: [
+        Obx(
+          () => Title(
+            color: Theme.of(context).colorScheme.surface,
+            child: Text(""),
+            title: Gloablelogic.title.value,
+          ),
+        ),
         NotificationListener<ScrollUpdateNotification>(
           onNotification: (notification) {
             final scrollDetails = notification.metrics;
             // print(notification.toString());
             logic.getSco(scrollDetails, context);
-            print("1");
+            // print("1");
             return true;
           },
           child: SingleChildScrollView(
+            controller: singleController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -38,7 +76,7 @@ class PostPage extends StatelessWidget {
                       height: MediaQuery.of(context).size.height * (3 / 4),
                     ),
                   ),
-                  // 其他内容可以放在这里
+                                 // 其他内容可以放在这里
                   Transform.translate(
                     offset: Offset(0, -200),
                     child: Acrylic(
@@ -46,31 +84,145 @@ class PostPage extends StatelessWidget {
                           ? MediaQuery.of(context).size.width
                           : 1000,
                       borderRadius: BorderRadius.circular(10),
-                      bgColor: Theme.of(context).cardColor.withValues(alpha: 0.4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "当你吃下名为⌈补佳乐⌋的糖",
-                            style: TextStyle(
-                                fontSize: 32, fontWeight: FontWeight.bold),
+                      bgColor:
+                          Theme.of(context).cardColor.withValues(alpha: 0.4),
+                      child: EnhancedFutureBuilder(
+                        future: postFuture,
+                        rememberFutureResult: true,
+                        whenNotDone: Skeletonizer(
+                          enabled: true,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "这里是一段标题文本的样子",
+                                style: TextStyle(
+                                    fontSize: 32, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "2024-11-08",
+                                style:
+                                    TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              Text(
+                                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sed sodales leo. Vivamus nec sem dui. Pellentesque semper nunc sit amet consequat maximus. Cras hendrerit nisl libero, quis pharetra velit lobortis eget. Sed dapibus gravida quam non luctus. Mauris et commodo diam. In quis arcu tempus, viverra mi ullamcorper, fermentum velit. Vivamus consectetur, magna nec ornare condimentum, mi nisl pretium urna, id scelerisque urna arcu in lorem. Fusce auctor, ipsum quis aliquet blandit, risus justo molestie libero, quis aliquet arcu lacus vel nisl. In hac habitasse platea dictumst. Praesent ac eros ac libero consequat venenatis.",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                            ],
                           ),
-                          Text(
-                            "2024-11-08",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                          Divider(),
-                          Text(
-                            "我们平常会吃很多糖，但这一颗似乎有一些不同。吃下它的那一刻，你便走上了一条与众不同的道路，在这条路上越往前走那颗糖就越发变得苦涩。这颗糖会让你认识到大脑是那样的屈服在激素之下，人类的智慧中枢，一个如此复杂的器官竟然会被一小串简单的分子式牢牢的控制住。当体内的雌激素越来越多时，你会发现自己的大脑好像被偷偷换掉了，变得更容易哭，变得焦虑甚至染上精神疾病。许你可以说这不是一颗糖，而是一颗包着薄薄糖衣的毒药。没错，这多么像毒药啊，它让人的大脑崩溃，患上千奇百怪的疾病，甚至可以让你原本的朋友开始远离你疏远你。这是多少神奇的一颗毒药。可当初你又为什么要吃下这一颗糖呢？是不是被这颗糖所说的效果迷昏了眼？乳房发育、皮肤细腻柔化、脂肪分布女性化、减缓雄激素引起的脱发......似乎这一切都是你想要的。只需要一颗糖就可以解决困扰自己多年的性别认同问题，谁不想试试呢？可惜的是，这东西可不是什么魔法。你会渐渐发觉似乎上面所说的效果并没有太大的体现。你依旧是那个骨架很大、穿不了女款鞋子的人。接着你会开始后悔，如果自己可以在青春期开始时吃糖就好了，这样就不会有骨架的发育、也不会有胡子、变声，但没有时光机的帮助，你又如何回到过去。也许你会开始羡慕那些生理性别的女性，但是却渴望成为男性的人们，似乎他们的目标远比自己的目标好实现。你每日进行伪音的练习，想要得到自己梦想中的声音，他们却似乎只需要服用激素就可以实现声音的降低。但你没有经历过，又何尝知道他们经历过的苦呢。无论是面对自己的副作用，还是对无法成为梦中自己的焦虑亦或是外界对你的质疑，你为什么依旧选择走下去呢。也许一直走下去总会在这条路上看到那一丁点光亮。",
-                            style: TextStyle(fontSize: 18, height: 2),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Divider(),
-                          CommentPage()
-
-                        ],
+                        ),
+                        whenDone: (ResultData) {
+                          var datas = ResultData[0];
+                          Map dataMap = datas[0];
+                          String text =
+                              dataMap['text'].replaceAll("<!--markdown-->", "");
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AutoScrollTag(key: ValueKey('top'), controller: singleController, index: 1,child: Text(""),),
+                              AutoScrollTag(key: ValueKey('title'), controller: singleController, index: 2,child: Text(
+                                dataMap['title'],
+                                style: TextStyle(
+                                    fontSize: 32, fontWeight: FontWeight.bold),
+                              ),),
+                              Text(
+                                AllFunc.ShowDateTime(dataMap['created']),
+                                style:
+                                    TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              SizedBox(height: 15,),
+                              MarkdownBlock(
+                                data: text,
+                                config: MarkdownConfig(
+                                  configs: [
+                                    CustomH1Config(),
+                                    CustomH2config(),
+                                    CustomH3config(),
+                                    isDark
+                                        ? BlockquoteConfig(
+                                            textColor: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color!,
+                                            sideColor: Color(0xff745399),
+                                          )
+                                        : BlockquoteConfig(
+                                            textColor: Color(0xff745399),
+                                            sideColor: Color(0xff745399),
+                                          ),
+                                    LinkConfig(
+                                      style: TextStyle(
+                                          color: Color(0xff745399),
+                                          decoration: TextDecoration.underline),
+                                    ),
+                                    isDark
+                                        ? PreConfig(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: Color(0xffd6e9ca)
+                                                  .withValues(alpha: 0.2),
+                                            ),
+                                          )
+                                        : PreConfig(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: Color(0xffd6e9ca)
+                                                  .withValues(alpha: 0.2),
+                                            ),
+                                          ),
+                                    isDark
+                                        ? CodeConfig(
+                                            style: TextStyle(
+                                              backgroundColor: Color(0xffd6e9ca)
+                                                  .withValues(alpha: 0.2),
+                                            ),
+                                          )
+                                        : CodeConfig(
+                                            style: TextStyle(
+                                              backgroundColor: Color(0xffd6e9ca)
+                                                  .withValues(alpha: 0.2),
+                                            ),
+                                          ),
+                                    ImgConfig(
+                                      builder: ( String url, Map<String, String> attributes){
+                                        return FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: url, width: MediaQuery.of(context).size.width,fit: BoxFit.contain,);
+                                      }
+                                    )
+                                  ],
+                                ),
+                                generator: MarkdownGenerator(
+                                  generators: [
+                                    testTagGenerator,
+                                    noticeTagGenerator,
+                                    warnTagGenerator,
+                                    linksTagGenerator,
+                                    musicTagGenerator,
+                                  ],
+                                  inlineSyntaxList: [
+                                    TestTagHas(),
+                                    NoticeTagHsa(),
+                                    WarnTagHas(),
+                                    LinkTagHas(),
+                                    MusicTagHas(),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              //   Divider(),
+                              Obx(() => logic.enableComment == 0 &&
+                                      dataMap['type'] == 'page'
+                                  ? Text("")
+                                  : CommentPage()),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import '../generated/assets.dart';
+import '../gloableFunc.dart';
 import '../post/logic.dart';
 
-Widget bcakground(BuildContext context){
-  final oneLogic = Get.find<PostLogic>();
+Widget bcakground(BuildContext context) {
+  final oneLogic = Get.find<gloableLogic>();
   return Column(
     children: [
       Transform.translate(
@@ -25,10 +27,24 @@ Widget bcakground(BuildContext context){
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },
             blendMode: BlendMode.dstIn,
-            child: Image.asset(Assets.assetsT2,
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * (3 / 4),
-                fit: BoxFit.cover),
+            child: Obx(() {
+              return AnimatedSwitcher(
+                  duration: Duration(milliseconds: 800),
+                  switchInCurve: Curves.decelerate,
+                  transitionBuilder: (child, anim) => FadeTransition(
+                        opacity: anim,
+                        child: child,
+                      ),
+                  child: FadeInImage.memoryNetwork(
+                    placeholder: kTransparentImage,
+                    image: oneLogic.ImgUrl.value == ""
+                        ? Assets.assetsTest
+                        : oneLogic.ImgUrl.value,
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height * (3 / 4),key: ValueKey(oneLogic.ImgUrl.value),
+                  ));
+            }),
           ),
         ),
       ),
@@ -53,8 +69,7 @@ Widget bcakground(BuildContext context){
                     Shadow(
                         offset: const Offset(0, 0),
                         blurRadius: 5.0,
-                        color:
-                        Colors.black.withValues(alpha: 0.5)),
+                        color: Colors.black.withValues(alpha: 0.5)),
                   ],
                 ),
               ),
@@ -68,8 +83,7 @@ Widget bcakground(BuildContext context){
                     Shadow(
                         offset: const Offset(0, 0),
                         blurRadius: 5.0,
-                        color:
-                        Colors.black.withValues(alpha: 0.5)),
+                        color: Colors.black.withValues(alpha: 0.5)),
                   ],
                 ),
               ),

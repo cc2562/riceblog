@@ -1,5 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:riceblog/home/view.dart';
+import 'package:riceblog/post/view.dart';
+
+import 'gloableFunc.dart';
 
 class Acrylic extends StatefulWidget {
 
@@ -23,7 +29,7 @@ class Acrylic extends StatefulWidget {
     Key? key,
     this.shadowColor =  Colors.transparent,
     this.bgColor = const Color.fromRGBO(175, 175, 175, 0.1),
-    this.blur = 15.0,
+    this.blur = 70.0,
     //required this.height,
     required this.width,
     this.borderRadius,
@@ -58,7 +64,7 @@ class _AcrylicState extends State<Acrylic> {
             child:BackdropFilter(///背景过滤器
               filter: ImageFilter.blur(sigmaX: widget.blur,sigmaY: widget.blur),///模糊度
               child: Container(///主体背景
-                padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                 width: widget.width,
                // height: widget.height,
                 decoration: BoxDecoration(
@@ -74,5 +80,38 @@ class _AcrylicState extends State<Acrylic> {
       ],
     );
   }
+}
+
+//自定义路由
+class CustomRoute extends StatefulWidget{
+  final String pageUrl;
+  CustomRoute({
+    Key? key,
+    required this.pageUrl,
+  });
+  @override
+  State<CustomRoute> createState() => _CustomRouteState();
+
+}
+
+class _CustomRouteState extends State<CustomRoute>{
+  @override
+  Widget build(BuildContext context) {
+    final Gloablelogic = Get.find<gloableLogic>();
+    // TODO: implement build
+    var uri = Uri.parse(widget.pageUrl);
+   // print("11111111gwg分开"+uri.pathSegments[0]);
+    if(uri.pathSegments.length==2&&uri.pathSegments[0]=='post'){
+      var postId = uri.pathSegments[1];
+      print(postId);
+      Gloablelogic.changePostId(postId);
+      return PostPage();
+    }
+    if(uri.path=="/"){
+      return HomePage();
+    }
+    return HomePage();
+  }
+
 }
 

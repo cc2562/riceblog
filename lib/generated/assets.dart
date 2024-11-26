@@ -2,7 +2,12 @@
 class Assets {
   Assets._();
 
+  static const String assetsCanvaskitCanvaskit = 'assets/canvaskit/canvaskit.wasm';
   static const String assetsT2 = 'assets/t2.jpg';
   static const String assetsTest = 'assets/test.jpg';
+  static const String canvaskitCanvaskit = 'assets/canvaskit/canvaskit.js';
+  static const String fontsNotoSansSC = 'assets/fonts/Noto-Sans-SC.ttf';
+  static const String fontsNotoSansSymbols = 'assets/fonts/Noto-Sans-Symbols.ttf';
+  static const String fontsRobotoRegular = 'assets/fonts/Roboto-Regular.ttf';
 
 }

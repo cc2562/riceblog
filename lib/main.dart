@@ -1,44 +1,116 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:riceblog/command.dart';
 import 'package:riceblog/generated/assets.dart';
+import 'package:riceblog/gloableFunc.dart';
+import 'package:riceblog/pages/fullHomePage.dart';
+import 'package:riceblog/pages/fullPostPage.dart';
+import 'package:riceblog/pages/reWrite.dart';
 import 'package:riceblog/post/logic.dart';
 import 'package:riceblog/post/view.dart';
 import 'package:riceblog/widget/background.dart';
+import 'package:riceblog/widget/header.dart';
 
-void main() {
+import 'home/view.dart';
+
+void main()  {
+  usePathUrlStrategy();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    final Globallogic = Get.put(gloableLogic());
+    return GetMaterialApp(
+
+      defaultTransition: Transition.fadeIn,
+      initialRoute: '/',
+      routingCallback: (routing){
+        if(routing?.current=='/post'||routing?.current!='/page'){
+
+        }
+        if(routing?.isBack == true){
+          print("BACK");
+          print(routing?.current.toString());
+          if(routing!.current.contains('/?page')||routing!.current=='/'){
+            Globallogic.ImgUrl.value = "";
+            Globallogic.title.value = "CC米饭的小世界";
+          }
+        }else if(routing!.current.contains('/?page')||routing!.current=='/'){
+          Globallogic.ImgUrl.value = "";
+          Globallogic.title.value = "CC米饭的小世界";
+        }
+
+      },
+      getPages: [
+        GetPage(
+          name: '/',
+          page: () => ResponsiveBreakpoints.builder(
+            child: const fullHomePage(),
+            breakpoints: [
+              const Breakpoint(start: 0, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+          ),
+        ),
+        GetPage(
+          name: '/post',
+        //  transition: Transition.zoom,
+          page: () => ResponsiveBreakpoints.builder(
+            child: fullPostPage(),
+            breakpoints: [
+              const Breakpoint(start: 0, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+          ),
+        ),
+        GetPage(
+          name: '/page',
+          //  transition: Transition.zoom,
+          page: () => ResponsiveBreakpoints.builder(
+            child: fullPostPage(),
+            breakpoints: [
+              const Breakpoint(start: 0, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+          ),
+        ),
+        GetPage(
+          name: '/archives',
+          page: ()=>ResponsiveBreakpoints.builder(
+            child: RewritePage(),
+            breakpoints: [
+              const Breakpoint(start: 0, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+          ),
+        )
+      ],
+      title: Globallogic.title.value,
       theme: ThemeData(
+        fontFamily: 'LXGWWenKaiLite',
+        fontFamilyFallback: ['Arial',"Noto Sans Symbols",'华文细黑','Microsoft YaHei','微软雅黑','Roboto','sans-serif'],
         colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue.shade400, brightness: Brightness.dark),
+            seedColor: Color(0xff745399), brightness: Brightness.light),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
+        fontFamily: 'LXGWWenKaiLite',
+        fontFamilyFallback: ['Arial',"Noto Sans Symbols",'华文细黑','Microsoft YaHei','微软雅黑','Roboto','sans-serif'],
         colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue.shade400, brightness: Brightness.dark),
+            seedColor: Color(0xff745399), brightness: Brightness.dark),
         useMaterial3: true,
-      ),
-      builder: (context, child) => ResponsiveBreakpoints.builder(
-        child: const MyHomePage(title: 'Flutter Demo Home Page'),
-        breakpoints: [
-          const Breakpoint(start: 0, end: 800, name: TABLET),
-          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-        ],
       ),
     );
   }
@@ -53,147 +125,19 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  final Postlogic = Get.put(PostLogic());
-  final oneLogic = Get.find<PostLogic>();
-  late AnimationController controller, menuController;
-  bool showMenu = false;
+class _MyHomePageState extends State<MyHomePage> {
+//  final Globallogic =Get.put(gloableLogic());
+
+  final Globallogic = Get.find<gloableLogic>();
   double _verticalOffset = 0.0;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    controller = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    menuController = AnimationController(
-        duration: Duration(milliseconds: 300),
-        lowerBound: 0,
-        upperBound: 0.4,
-        vsync: this);
-
-    menuController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollStartNotification>(
-      onNotification: (_) {
-        // 清除之前的偏移量
-        setState(() {
-          _verticalOffset = 0.0;
-        });
-        return true;
-      },
-      child: Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(300),
-          child: Container(
-            alignment: Alignment.topCenter,
-            height: 300,
-            padding: EdgeInsets.fromLTRB(30, 5, 30, 0),
-            child: Column(
-              children: [
-                Acrylic(
-                  width: ResponsiveBreakpoints.of(context).isTablet
-                      ? MediaQuery.of(context).size.width
-                      : 1000,
-                  borderRadius: BorderRadius.circular(100),
-                  bgColor: Theme.of(context).cardColor.withValues(alpha: 0.4),
-                  child: Container(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CircleAvatar(),
-                        IconButton(
-                          onPressed: () {
-                            if (controller.isDismissed) {
-                              setState(() {
-                                showMenu = true;
-                              });
-                              controller.forward();
-                              menuController.forward();
-                            } else {
-                              setState(() {
-                                showMenu = false;
-                              });
-                              controller.reverse();
-                              menuController.reverse();
-                            }
-                          },
-                          icon: AnimatedIcon(
-                              icon: AnimatedIcons.menu_close,
-                              progress: controller),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Visibility(
-                  visible: showMenu,
-                  child: Acrylic(
-                    width: ResponsiveBreakpoints.of(context).isTablet
-                        ? MediaQuery.of(context).size.width
-                        : 1000,
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(50),
-                        bottomRight: Radius.circular(50),
-                        topLeft: Radius.circular(50),
-                        topRight: Radius.circular(50)),
-                    bgColor: Theme.of(context)
-                        .cardColor
-                        .withValues(alpha: menuController.value),
-                    child: Container(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: [
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("首页"),
-                            style: TextButton.styleFrom(
-                                textStyle: TextStyle(fontSize: 20)),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("留言"),
-                            style: TextButton.styleFrom(
-                                textStyle: TextStyle(fontSize: 20)),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("友人帐"),
-                            style: TextButton.styleFrom(
-                                textStyle: TextStyle(fontSize: 20)),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text("关于我"),
-                            style: TextButton.styleFrom(
-                                textStyle: TextStyle(fontSize: 20)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-        body: Stack(
-          children: [
-            bcakground(context),
-            PostPage(),
-          ],
-        ),
-      ),
-    );
+    return Placeholder();
   }
 }
