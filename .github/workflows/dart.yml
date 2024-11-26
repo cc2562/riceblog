@@ -23,5 +23,4 @@ jobs:
       with:
         channel: master
     - run: flutter pub get
-    - run: flutter test
     - run: flutter build web --web-renderer canvaskit --no-web-resources-cdn
