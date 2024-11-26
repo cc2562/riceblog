@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: build
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
 
     steps:
@@ -26,9 +26,11 @@ jobs:
         channel: master
     - run: flutter pub get
     - name: 获取版本号
-      if: ${{ matrix.type != 'windows' }}
+      shell: pwsh
       run: |
-        echo "version=$(awk -F': ' '/version:/ {gsub("\\+", "-", $2); print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
+        $version = (Get-Content pubspec.yaml -Raw) -match 'version:\s*([^\s]+)' | Out-Null
+        $version = $Matches[1] -replace '\+', '-'
+        echo "version=$version" | Out-File -Append -Encoding utf8 -FilePath $Env:GITHUB_ENV
     - name: 打印版本号
       run: |
         echo "version: ${{ env.version }}"
@@ -36,13 +38,13 @@ jobs:
       run: flutter build web --web-renderer canvaskit --no-web-resources-cdn
     - name: zipped build
       run: |
-        tar -czvf releaseWeb.tar.gz -C  build/web
+         Compress-Archive -Path 'build\web' -DestinationPath 'releaseWeb.zip'
     - name: Release
       uses: ncipollo/release-action@v1
       with:
         tag: "v${{ env.version }}"
         draft: false
-        artifacts: "*.tar.gz"
+        artifacts: "*.zip"
         allowUpdates: true
         token: ${{ github.token }}
 
