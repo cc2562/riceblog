@@ -25,17 +25,24 @@ jobs:
       with:
         channel: master
     - run: flutter pub get
+    - name: 获取版本号
+      if: ${{ matrix.type != 'windows' }}
+      run: |
+        echo "version=$(awk -F': ' '/version:/ {gsub("\\+", "-", $2); print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
+    - name: 打印版本号
+      run: |
+        echo "version: ${{ env.version }}"
     - name: Build Web
       run: flutter build web --web-renderer canvaskit --no-web-resources-cdn
     - name: zipped build
       run: |
-          Compress-Archive -Path 'build/web' -DestinationPath 'realeaseWeb.zip'
+        tar -czvf releaseWeb.tar.gz -C  build/web
     - name: Release
       uses: ncipollo/release-action@v1
       with:
         tag: "v${{ env.version }}"
         draft: false
-        artifacts: "*.zip"
+        artifacts: "*.tar.gz"
         allowUpdates: true
         token: ${{ github.token }}
 
